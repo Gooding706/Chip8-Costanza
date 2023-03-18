@@ -10,8 +10,8 @@ class Chip8
   private:
     static const std::uint16_t MEMORY_SIZE = 4096; // define MEMORY_SIZE as static const member variable
     std::array<std::uint8_t, MEMORY_SIZE> memory = {0};
-    static const int height = 500;
-    static const int width = 500;
+    static const int height = 32;
+    static const int width = 64;
     std::array<std::array<bool, height>, width>& screen;
     sf::RenderWindow& window;
     std::array<std::uint16_t, 16> stack;  // 16-level stack

@@ -1,23 +1,30 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include "CPU.h"
 #include <array>
 #include <iostream>
 
 int main()
 {
-    const int width = 500;
-    const int height = 500;
+    const int width = 64;
+    const int height = 32;
 
     // Initialize the screen as a 2D boolean array
     std::array<std::array<bool, height>, width> screen = {{false}};
     sf::RenderWindow window(sf::VideoMode(width, height), "My window");
 
+    sf::SoundBuffer buffer;
+    buffer.loadFromFile("Audio/sound.wav");
+    sf::Sound Beep;
+    Beep.setBuffer(buffer);
+    Beep.setLoop(true);
     Chip8 Cpu(window, screen);
-    //Cpu.loadRom("Roms/Pong (alt).ch8");
+    Cpu.loadRom("Roms/Pong (alt).ch8");
     //Cpu.loadRom("Roms/IBM Logo.ch8");
     //Cpu.loadRom("Roms/SCTEST.CH8");
     //Cpu.loadRom("Roms/tetris.ch8");
-    Cpu.loadRom("Roms/test_opcode.ch8");
+    //Cpu.loadRom("Roms/test_opcode.ch8");
+    //Cpu.decode(0xF065);
     //Cpu.loadRom("Roms/chip8-test-suite.ch8");
     //Cpu.loadRom("Roms/random_number_test.ch8");
     //Cpu.loadRom("Roms/Maze (alt) [David Winter, 199x].ch8");
@@ -34,6 +41,15 @@ int main()
           Cpu.delay_timer -=1;
         }
 
+        if (Cpu.sound_timer > 0)
+        {
+          if(Beep.getStatus() != sf::Sound::Status::Playing)
+            Beep.play();
+          Cpu.sound_timer -=1;
+        }else{
+          Beep.stop();
+        }
+
         sf::Event event;
         while (window.pollEvent(event))
         {
@@ -44,8 +60,8 @@ int main()
         // Clear the window
         window.clear();
 
-        const int pixelSize = 7;
-        const float pixelGap = 0.5;
+        const int pixelSize = 1;
+        const float pixelGap = 0;
 
         for (int x = 0; x < width; x++)
         {

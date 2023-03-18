@@ -16,6 +16,7 @@ Chip8::Chip8(sf::RenderWindow& window, std::array<std::array<bool, height>, widt
     }
 
     PC = 512;
+    I = 0;
     for (int i = 0; i < 80; i++)
     {
         memory[i] = CHIP8_FONTSET[i];
@@ -51,7 +52,7 @@ uint16_t Chip8::fetch() {
 
 void Chip8::decode(uint16_t opcode)
 {
-    uint8_t X = (opcode >> 8) & 0x0F;
+    uint8_t X = (opcode & 0x0F00u) >> 8u;
     uint8_t Y = (opcode >> 4) & 0x0F;
     uint8_t N = opcode & 0x0F;
     uint8_t NN = opcode & 0xFF;
@@ -172,6 +173,9 @@ void Chip8::decode(uint16_t opcode)
               case 0x0055:
                   OP_FX55(X);
                   break;
+              case 0x0065:
+                  OP_FX65(X);
+                  break;
                   case 0xF000:
             switch (opcode & 0x00FF) {
                 case 0x0007:
@@ -202,12 +206,12 @@ void Chip8::decode(uint16_t opcode)
                     OP_FX65(X);
                     break;
                 default:
-                    //printf("Unknown opcode: 0x%X\n", opcode);
+                    printf("Unknown opcode: 0x%X\n", opcode);
                     break;
             }
             break;
         default:
-            //printf("Unknown opcode: 0x%X\n", opcode);
+            printf("Unknown opcode: 0x%X\n", opcode);
             break;
     }
 }
@@ -332,21 +336,23 @@ void Chip8::OP_FX33(std::uint8_t X)
 
 void Chip8::OP_FX55(std::uint8_t X)
 {
-  for (int i = 0; i <= registers[X]; ++i)
+  uint8_t Vx = X;
+
+	for (uint8_t i = 0; i <= Vx; ++i)
 	{
 		memory[I + i] = registers[i];
 	}
-  I += X + 1;
 }
 
 void Chip8::OP_FX65(std::uint8_t X)
 {
-    for (int i = 0; i <= registers[X]; ++i)
+    std::uint8_t Vx = X;
+    for (std::uint8_t i = 0; i <= Vx; ++i)
     {
         registers[i] = memory[I + i];
     }
-    I += X + 1;
 }
+
 
 void Chip8::OP_1NNN(std::uint16_t NNN)
 {
@@ -428,6 +434,11 @@ void Chip8::OP_8XY4(std::uint8_t X, std::uint8_t Y)
 
 void Chip8::OP_8XY5(std::uint8_t X, std::uint8_t Y)
 {
+  if (registers[X] < registers[Y]) {
+    registers[0xF] = 0; // borrow occurred
+  } else {
+    registers[0xF] = 1;
+  }
   registers[X] -= registers[Y];
 }
 
