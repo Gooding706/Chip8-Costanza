@@ -80,11 +80,10 @@ class Chip8
       VD,
       VE,
       VF,
-      I,
-      PC
     };
-
-  std::uint16_t registers[18] = {0};
+  std::uint16_t I;
+  std::uint16_t PC;
+  std::uint8_t registers[16];
 
   public:
       // instructions

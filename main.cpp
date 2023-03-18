@@ -13,18 +13,19 @@ int main()
     sf::RenderWindow window(sf::VideoMode(width, height), "My window");
 
     Chip8 Cpu(window, screen);
-    //Cpu.loadRom("Pong (alt).ch8");
-    Cpu.loadRom("IBM Logo.ch8");
-    //Cpu.loadRom("SCTEST.CH8");
-    //Cpu.loadRom("tetris.ch8");
-    //Cpu.loadRom("test_opcode.ch8");
-    //Cpu.loadRom("random_number_test.ch8");
-    //Cpu.loadRom("Maze (alt) [David Winter, 199x].ch8");
+    //Cpu.loadRom("Roms/Pong (alt).ch8");
+    //Cpu.loadRom("Roms/IBM Logo.ch8");
+    //Cpu.loadRom("Roms/SCTEST.CH8");
+    //Cpu.loadRom("Roms/tetris.ch8");
+    Cpu.loadRom("Roms/test_opcode.ch8");
+    //Cpu.loadRom("Roms/chip8-test-suite.ch8");
+    //Cpu.loadRom("Roms/random_number_test.ch8");
+    //Cpu.loadRom("Roms/Maze (alt) [David Winter, 199x].ch8");
     //Cpu.decode(Cpu.fetch());
     //Cpu.fetch();
 
-
-
+    //Cpu.OP_6XNN(3, 152);
+    //Cpu.OP_FX33(3);
     window.setFramerateLimit(60);
     while (window.isOpen())
     {
@@ -43,8 +44,8 @@ int main()
         // Clear the window
         window.clear();
 
-        const int pixelSize = 10;
-        const int pixelGap = 1;
+        const int pixelSize = 7;
+        const float pixelGap = 0.5;
 
         for (int x = 0; x < width; x++)
         {
@@ -57,20 +58,12 @@ int main()
                     pixel.setPosition(x * (pixelSize + pixelGap), y * (pixelSize + pixelGap));
                     window.draw(pixel);
                 }
-                else
-                {
-                    // Draw a black pixel
-                    sf::RectangleShape pixel(sf::Vector2f(pixelSize, pixelSize));
-                    pixel.setFillColor(sf::Color::Black);
-                    pixel.setPosition(x * (pixelSize + pixelGap), y * (pixelSize + pixelGap));
-                    window.draw(pixel);
-                }
             }
         }
 
 
         // Add fetch and decode calls
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 10; i++)
         {
             Cpu.decode(Cpu.fetch());
         }

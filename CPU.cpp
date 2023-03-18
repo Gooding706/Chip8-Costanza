@@ -10,8 +10,13 @@
 Chip8::Chip8(sf::RenderWindow& window, std::array<std::array<bool, height>, width>& screen) : window(window), screen(screen)
 {
     srand(time(NULL));
-    registers[PC] = 512;
-    for (int i = 0; i < 80; ++i)
+    for(int i = 0; i < 16; i++)
+    {
+      registers[i] = 0;
+    }
+
+    PC = 512;
+    for (int i = 0; i < 80; i++)
     {
         memory[i] = CHIP8_FONTSET[i];
     }
@@ -36,10 +41,10 @@ void Chip8::loadRom(const char* path)
 
 
 uint16_t Chip8::fetch() {
-    //std::cout << std::hex << (int)registers[PC] << "=" << (int)memory[512] << "\n";
-    uint8_t opcode_hi = memory[registers[PC]];
-    uint8_t opcode_lo = memory[registers[PC] + 1];
-    registers[PC] += 2;  // increment PC here
+    //std::cout << std::hex << (int)PC << "=" << (int)memory[512] << "\n";
+    uint8_t opcode_hi = memory[PC];
+    uint8_t opcode_lo = memory[PC + 1];
+    PC += 2;  // increment PC here
 
     return (opcode_hi << 8) | opcode_lo;
 }
@@ -129,6 +134,7 @@ void Chip8::decode(uint16_t opcode)
           break;
       case 0xD000:
           OP_DXYN(X, Y, N);
+          //PC += 2;
           break;
       case 0xE000:
           switch (opcode & 0x00FF) {
@@ -239,23 +245,29 @@ void Chip8::OP_00E0()
 
 void Chip8::OP_00EE()
 {
-    registers[PC] = Chip8::pop();
+    PC = Chip8::pop();
 }
 
 void Chip8::OP_EX9E(std::uint8_t X)
 {
+  if(registers[X] < 16){
     if (sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Key>(keymap[registers[X]])))
     {
-        registers[PC] += 0x02; // Skip next instruction if key is pressed
+        PC += 0x02; // Skip next instruction if key is pressed
     }
+  }
 }
 
 void Chip8::OP_EXA1(std::uint8_t X)
 {
-    if (!sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Key>(keymap[registers[X]])))
+  if(registers[X] < 16){
+    if (sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Key>(keymap[registers[X]])))
     {
-        registers[PC] += 0x02; // Skip next instruction if key is not pressed
+      return; // Skip next instruction if key is not pressed
+    }else{
+      PC += 2;
     }
+  }
 }
 
 void Chip8::OP_FX07(std::uint8_t X)
@@ -275,7 +287,7 @@ void Chip8::OP_FX18(std::uint8_t X)
 
 void Chip8::OP_FX1E(std::uint8_t X)
 {
-    registers[I] += registers[X];
+    I += registers[X];
 }
 
 void Chip8::OP_FX0A(std::uint8_t X)
@@ -307,54 +319,51 @@ void Chip8::OP_FX0A(std::uint8_t X)
 
 void Chip8::OP_FX29(std::uint8_t X)
 {
-  registers[I] = registers[X] * 5;
+  I = registers[X] * 5;
 }
 
 void Chip8::OP_FX33(std::uint8_t X)
 {
-  std::uint8_t value = registers[X];
-  std::uint8_t ones = value % 10;
-  value /= 10;
-  std::uint8_t tens = value % 10;
-  value /= 10;
-  std::uint8_t hundreds = value % 10;
-
-  memory[I] = hundreds;
-  memory[I + 1] = tens;
-  memory[I + 2] = ones;
+    memory[I] = (registers[X] - (registers[X] % 100))/100;
+    memory[I + 1] = ((registers[X] % 100) - ((registers[X] % 100) % 10))/10;
+    memory[I + 2] = (registers[X] % 100) % 10;
 }
+
 
 void Chip8::OP_FX55(std::uint8_t X)
 {
-  for (int i = 0; i <= X; i++)
-  {
-    memory[I + i] = registers[i];
-  }
+  for (int i = 0; i <= registers[X]; ++i)
+	{
+		memory[I + i] = registers[i];
+	}
+  I += X + 1;
 }
 
 void Chip8::OP_FX65(std::uint8_t X)
 {
-  for (int i = 0; i <= X; i++) {
-       registers[i] = memory[I + i];
-   }
+    for (int i = 0; i <= registers[X]; ++i)
+    {
+        registers[i] = memory[I + i];
+    }
+    I += X + 1;
 }
 
 void Chip8::OP_1NNN(std::uint16_t NNN)
 {
-  registers[PC] = NNN;
+  PC = NNN;
 }
 
 void Chip8::OP_2NNN(std::uint16_t NNN)
 {
-  Chip8::push(registers[PC]);
-  registers[PC] = NNN;
+  Chip8::push(PC);
+  PC = NNN;
 }
 
 void Chip8::OP_3XNN(std::uint8_t X, std::uint8_t NN)
 {
   if(registers[X] == NN)
   {
-    registers[PC] += 0x02;
+    PC += 0x02;
   }
 }
 
@@ -362,7 +371,7 @@ void Chip8::OP_4XNN(std::uint8_t X, std::uint8_t NN)
 {
   if(registers[X] != NN)
   {
-    registers[PC] += 0x02;
+    PC += 0x02;
   }
 }
 
@@ -370,7 +379,7 @@ void Chip8::OP_5XY0(std::uint8_t X, std::uint8_t Y)
 {
   if(registers[X] == registers[Y])
   {
-    registers[PC] += 0x02;
+    PC += 0x02;
   }
 }
 
@@ -378,7 +387,7 @@ void Chip8::OP_9XY0(std::uint8_t X, std::uint8_t Y)
 {
   if(registers[X] != registers[Y])
   {
-    registers[PC] += 0x02;
+    PC += 0x02;
   }
 }
 
@@ -389,7 +398,7 @@ void Chip8::OP_6XNN(std::uint8_t X, std::uint8_t NN)
 
 void Chip8::OP_7XNN(std::uint8_t X, std::uint8_t NN)
 {
-  registers[X] += NN;
+    registers[X] += NN;
 }
 
 void Chip8::OP_8XY0(std::uint8_t X, std::uint8_t Y)
@@ -443,12 +452,12 @@ void Chip8::OP_8XYE(std::uint8_t X, std::uint8_t Y)
 
 void Chip8::OP_ANNN(std::uint16_t NNN)
 {
-  registers[I] = NNN;
+  I = NNN;
 }
 
 void Chip8::OP_BNNN(std::uint16_t NNN)
 {
-  registers[PC] = registers[V0] + (NNN & 0x0FFF);
+  PC = registers[V0] + (NNN & 0x0FFF);
 }
 
 void Chip8::OP_CXNN(std::uint8_t X, std::uint8_t NN)
@@ -458,9 +467,6 @@ void Chip8::OP_CXNN(std::uint8_t X, std::uint8_t NN)
 
 void Chip8::OP_DXYN(std::uint8_t X, std::uint8_t Y, std::uint8_t N)
 {
-  //OP_00E0();
-  std::cout << "Drawing sprite at (" << (int)registers[X] << ", " << (int)registers[Y] << ") with height " << (int)N << std::endl;
-
   registers[VF] = 0;
   for (int yline = 0; yline < N; yline++) {
       std::uint8_t pixel = memory[I + yline];
@@ -477,5 +483,4 @@ void Chip8::OP_DXYN(std::uint8_t X, std::uint8_t Y, std::uint8_t N)
           }
       }
   }
-  //registers[PC] += 2;
 }
