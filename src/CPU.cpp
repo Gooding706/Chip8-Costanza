@@ -7,13 +7,66 @@
 #include <SFML/Graphics.hpp>
 #include "CPU.h"
 
+std::uint8_t CHIP8_FONTSET[80] = {
+  0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+  0x20, 0x60, 0x20, 0x20, 0x70, // 1
+  0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+  0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+  0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+  0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+  0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+  0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+  0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+  0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+  0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+  0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+  0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+  0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+  0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+  0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+};
+
+const std::uint8_t keymap[16] = {
+sf::Keyboard::X,   // Key 0
+sf::Keyboard::Num1,   // Key 1
+sf::Keyboard::Num2,   // Key 2
+sf::Keyboard::Num3,   // Key 3
+sf::Keyboard::Q,   // Key 4
+sf::Keyboard::W,   // Key 5
+sf::Keyboard::E,   // Key 6
+sf::Keyboard::A,   // Key 7
+sf::Keyboard::S,   // Key 8
+sf::Keyboard::D,   // Key 9
+sf::Keyboard::Z,   // Key A
+sf::Keyboard::C,   // Key B
+sf::Keyboard::Num4,   // Key C
+sf::Keyboard::R,   // Key D
+sf::Keyboard::F,   // Key E
+sf::Keyboard::V    // Key F
+};
+
+enum Register {
+  V0,
+  V1,
+  V2,
+  V3,
+  V4,
+  V5,
+  V6,
+  V7,
+  V8,
+  V9,
+  VA,
+  VB,
+  VC,
+  VD,
+  VE,
+  VF,
+};
+
 Chip8::Chip8(sf::RenderWindow& window, std::array<std::array<bool, height>, width>& screen) : window(window), screen(screen)
 {
     srand(time(NULL));
-    for(int i = 0; i < 16; i++)
-    {
-      registers[i] = 0;
-    }
 
     PC = 512;
     I = 0;
@@ -27,22 +80,18 @@ void Chip8::loadRom(const char* path)
 {
   std::fstream f1;
   f1.open(path, std::ios::in | std::ios::binary);
-  for (int i = 512; i < memory.size(); i++) {
+  for (int i = 512; i < MEMORY_SIZE; i++) {
     if (f1.eof()) {
       break;
     }
     f1.read((char *)&memory[i], sizeof(uint8_t));
-    //std::cout << std::hex << static_cast<int>(memory[i]);
-    if ((i + 1) % 2 == 0) {
-      //std::cout << '\n';
-    }
   }
 }
 
 
 
-uint16_t Chip8::fetch() {
-    //std::cout << std::hex << (int)PC << "=" << (int)memory[512] << "\n";
+uint16_t Chip8::fetch()
+{
     uint8_t opcode_hi = memory[PC];
     uint8_t opcode_lo = memory[PC + 1];
     PC += 2;  // increment PC here
@@ -58,6 +107,7 @@ void Chip8::decode(uint16_t opcode)
     uint8_t NN = opcode & 0xFF;
     uint16_t NNN = opcode & 0xFFF;
 
+    //Hold your breath ... giant switch statement approaching
     switch (opcode & 0xF000) {
         case 0x0000:
             switch (opcode & 0x00FF) {
@@ -220,7 +270,7 @@ void Chip8::push(std::uint16_t value)
 {
     if (sp >= stack.size())
     {
-        // Stack overflow error
+        std::cout << "Cities crumble, towns cry you hit a stack overflow\n";
         return;
     }
     stack[sp++] = value;
@@ -230,7 +280,7 @@ std::uint16_t Chip8::pop()
 {
     if (sp == 0)
     {
-        // Stack underflow error
+        std::cout << "you hit a stack underflow\n";
         return 0;
     }
     return stack[--sp];

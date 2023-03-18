@@ -1,2 +1,2 @@
 program:
-	g++ main.cpp CPU.cpp -g --std=c++11 -I/opt/homebrew/Cellar/sfml/2.5.1_2/include/ -o test -L/opt/homebrew/Cellar/sfml/2.5.1_2/lib -lsfml-graphics -lsfml-audio -lsfml-window -lsfml-system -lstdc++
+	g++ src/main.cpp src/CPU.cpp src/fileStructure.cpp src/gui.cpp --std=c++11 -I/Users/owen/Desktop/Frameworks/imgui-master/ -L/Users/owen/Desktop/Frameworks/imgui-master/ -I/Users/owen/Desktop/Frameworks/imgui-sfml-master/ -L /Users/owen/Desktop/Frameworks/imgui-sfml-master/ -lImGui-SFML -framework OpenGL -I/opt/homebrew/Cellar/sfml/2.5.1_2/include/ -o test -L/opt/homebrew/Cellar/sfml/2.5.1_2/lib -lsfml-graphics -lsfml-audio -lsfml-window -lsfml-system -lstdc++

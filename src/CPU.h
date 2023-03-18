@@ -8,82 +8,35 @@
 class Chip8
 {
   private:
-    static const std::uint16_t MEMORY_SIZE = 4096; // define MEMORY_SIZE as static const member variable
-    std::array<std::uint8_t, MEMORY_SIZE> memory = {0};
-    static const int height = 32;
-    static const int width = 64;
-    std::array<std::array<bool, height>, width>& screen;
-    sf::RenderWindow& window;
+    //private variables
+    static const std::uint16_t MEMORY_SIZE = 4096; //the ram size of the chip8
+    std::array<std::uint8_t, MEMORY_SIZE> memory = {0}; //memory array
+    static const int height = 640; //screen height
+    static const int width = 1280; //screen width
+    std::array<std::array<bool, height>, width>& screen; //Screen bool array
+    sf::RenderWindow& window; //Sfml window
     std::array<std::uint16_t, 16> stack;  // 16-level stack
-    std::uint8_t sp = 0;                      // stack pointer
+    std::uint8_t sp = 0;  // stack pointer
+    std::uint16_t I; //index register (12 bits on the hardware, 16 bits for emulation sake)
+    std::uint16_t PC; //Program counter, defines memory adress of current instruction
+    std::uint8_t registers[16] = {0}; //16 registers for the chip8
+  public:
+    //Public variables
+    std::uint8_t delay_timer = 0;//used to delay specific events
+    std::uint8_t sound_timer = 0;//used to specify how long sounds will play for
 
   public:
-    std::uint8_t delay_timer = 0;
-    std::uint8_t sound_timer = 0;
+    //Emulation functions
     Chip8(sf::RenderWindow& window, std::array<std::array<bool, height>, width>& screen);
     void loadRom(const char* path);
     uint16_t fetch();
     void decode(uint16_t opcode);
-    std::uint8_t CHIP8_FONTSET[80] = {
-      0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
-      0x20, 0x60, 0x20, 0x20, 0x70, // 1
-      0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
-      0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
-      0x90, 0x90, 0xF0, 0x10, 0x10, // 4
-      0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
-      0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
-      0xF0, 0x10, 0x20, 0x40, 0x40, // 7
-      0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
-      0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
-      0xF0, 0x90, 0xF0, 0x90, 0x90, // A
-      0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
-      0xF0, 0x80, 0x80, 0x80, 0xF0, // C
-      0xE0, 0x90, 0x90, 0x90, 0xE0, // D
-      0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
-      0xF0, 0x80, 0xF0, 0x80, 0x80  // F
-    };
-    const std::uint8_t keymap[16] = {
-    sf::Keyboard::X,   // Key 0
-    sf::Keyboard::Num1,   // Key 1
-    sf::Keyboard::Num2,   // Key 2
-    sf::Keyboard::Num3,   // Key 3
-    sf::Keyboard::Q,   // Key 4
-    sf::Keyboard::W,   // Key 5
-    sf::Keyboard::E,   // Key 6
-    sf::Keyboard::A,   // Key 7
-    sf::Keyboard::S,   // Key 8
-    sf::Keyboard::D,   // Key 9
-    sf::Keyboard::Z,   // Key A
-    sf::Keyboard::C,   // Key B
-    sf::Keyboard::Num4,   // Key C
-    sf::Keyboard::R,   // Key D
-    sf::Keyboard::F,   // Key E
-    sf::Keyboard::V    // Key F
-    };
 
+  public:
+    //stack functions
     void push(std::uint16_t value);
     std::uint16_t pop();
-    enum Register {
-      V0,
-      V1,
-      V2,
-      V3,
-      V4,
-      V5,
-      V6,
-      V7,
-      V8,
-      V9,
-      VA,
-      VB,
-      VC,
-      VD,
-      VE,
-      VF,
-    };
-  std::uint16_t I;
-  std::uint16_t PC;
-  std::uint8_t registers[16];
+
 
   public:
       // instructions
